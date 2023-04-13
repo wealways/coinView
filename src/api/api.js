@@ -24,6 +24,12 @@ export default {
 
   async getSymbols(){
     const res = await apiClient.get('/market/all')
-    return res.data
+    return res
+  },
+
+  async getTickers(markets = []) {
+    return await apiClient.get('/ticker', {
+      params: { markets: markets.join(',') },
+    })
   }
 };
