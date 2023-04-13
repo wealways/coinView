@@ -1,11 +1,13 @@
 <script setup>
 import { ref,onMounted } from 'vue'
 import api from '@/api/api.js';
+import { v4 as uuidv4 } from 'uuid'
+import {getCurrency,getChangeRate,getRatePrefix,getVolume} from '@/common/util.js'
 
 const coins = ref({})
+const markets = ref([])
 
 onMounted(async() => {
-  const markets = []
   
   const {data:symbols} = await api.getSymbols()
   
@@ -15,17 +17,51 @@ onMounted(async() => {
         return
       }
 
-      markets.push(symbol.market)
+      markets.value.push(symbol.market)
       coins.value[symbol.market] = symbol
     })
 
-  const { data:tickers} = await api.getTickers(markets)
+  const { data:tickers} = await api.getTickers(markets.value)
   tickers.forEach((ticker) => {
       coins.value[ticker.market] = Object.assign(
         coins.value[ticker.market],
         ticker
       )
     })
+
+  // Websocket
+  try{
+    const ws = new WebSocket('wss://api.upbit.com/websocket/v1')
+    ws.onopen = (e) => {
+      ws.send(
+        `${JSON.stringify([
+          { ticket: uuidv4() },
+          { type: 'ticker', codes: markets.value },
+        ])}`
+      )
+    }
+    ws.onmessage = async (payload) => {
+      const ticker = await new Response(payload.data).json()
+
+      if (!coins.value[ticker.code]) {
+        return
+      }
+
+      if (ticker.change === 'FALL') {
+        coins.value[ticker.code].trade_price = -ticker.trade_price
+        coins.value[ticker.code].change_rate = -ticker.change_rate
+        coins.value[ticker.code].change_price = -ticker.change_price
+      } else {
+        coins.value[ticker.code].trade_price = ticker.trade_price
+        coins.value[ticker.code].change_rate = ticker.change_rate
+        coins.value[ticker.code].change_price = ticker.change_price
+      }
+    }
+
+  }catch(err){
+    // todo
+    // 웹소켓 에러나면 어떻게 처리해야 할까?
+  }
 
 })
 
@@ -43,25 +79,29 @@ onMounted(async() => {
         </tr>
       </thead>
     <tbody class="text-gray-900">
-        <tr v-for="(coin, key) in coins" :key="key">
-          <td class="py-1 px-4 text-left">
-            <div class="font-semibold text-gray-700">
-              {{ coin.korean_name }}
-            </div>
-            <div class="text-sm text-gray-500">{{ coin.market }}/KRW</div>
-          </td>
-          <td class="py-1 px-4 text-right align-top font-semibold">
-            {{ coin.trade_price }}
-          </td>
-          <td class="py-1 px-4 text-right">
-            <div class="font-semibold">{{ coin.change_rate * 100 }}%</div>
-            <div class="text-sm text-gray-500">{{ coin.change_price }}</div>
-          </td>
-          <td class="py-1 px-4 text-right">
-            {{ coin.acc_trade_price_24h }}백만
-          </td>
-        </tr>
-      </tbody>
+      <tr v-for="(coin, key) in coins" :key="key">
+        <td class="py-1 px-4 text-left">
+          <div class="font-semibold text-gray-700">
+            {{ coin.korean_name }}
+          </div>
+          <div class="text-sm text-gray-500">{{ coin.market }}</div>
+        </td>
+        <td class="py-1 px-4 text-right font-semibold">
+          {{ getRatePrefix(coin) }}{{ getCurrency(coin.trade_price) }}
+        </td>
+        <td class="py-1 px-4 text-right">
+          <div class="font-semibold">
+            {{ getRatePrefix(coin) }}{{ getChangeRate(coin.change_rate) }}%
+          </div>
+          <div class="text-sm text-gray-500">
+            {{ getRatePrefix(coin) }}{{ getCurrency(coin.change_price) }}
+          </div>
+        </td>
+        <td class="py-1 px-4 text-right font-semibold text-gray-500">
+          {{ getVolume(coin.acc_trade_price_24h) }}
+        </td>
+      </tr>
+    </tbody>
   </table>
 </template>
 
