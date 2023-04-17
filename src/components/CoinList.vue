@@ -2,7 +2,7 @@
 import { ref,onMounted } from 'vue'
 import api from '@/api/api.js';
 import { v4 as uuidv4 } from 'uuid'
-import {getCurrency,getChangeRate,getRatePrefix,getVolume} from '@/common/util.js'
+import {getCurrency,getChangeRate,getRatePrefix,getVolume,getColor} from '@/common/util.js'
 
 const coins = ref({})
 const markets = ref([])
@@ -57,7 +57,7 @@ onMounted(async() => {
         coins.value[ticker.code].change_price = ticker.change_price
       }
     }
-
+  console.log(coins)
   }catch(err){
     // todo
     // 웹소켓 에러나면 어떻게 처리해야 할까?
@@ -86,10 +86,10 @@ onMounted(async() => {
           </div>
           <div class="text-sm text-gray-500">{{ coin.market }}</div>
         </td>
-        <td class="py-1 px-4 text-right font-semibold">
+        <td :class="[getColor(coin.change), 'py-1 px-4 text-right font-semibold align-top']">
           {{ getRatePrefix(coin) }}{{ getCurrency(coin.trade_price) }}
         </td>
-        <td class="py-1 px-4 text-right">
+        <td :class="[getColor(coin.change), 'py-1 px-4 text-right']">
           <div class="font-semibold">
             {{ getRatePrefix(coin) }}{{ getChangeRate(coin.change_rate) }}%
           </div>
