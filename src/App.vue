@@ -11,4 +11,7 @@ import CoinList from './components/CoinList.vue'
 </template>
 
 <style scoped>
+body {
+  max-height: 300px;
+}
 </style>

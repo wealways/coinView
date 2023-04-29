@@ -12,7 +12,7 @@ import { ref } from 'vue'
 
 <style scoped>
 .header{
-  min-width: 350px;
+  min-width: 400px;
   height: 30px;
   display: flex;
   justify-content: space-between;

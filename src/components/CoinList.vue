@@ -69,41 +69,47 @@ onMounted(async() => {
 </script>
 
 <template>
-<table class="table w-full">
+<div id="tableWrap">
+  <table class="table w-full">
     <thead>
-        <tr class="border-b border-gray-100 text-sm text-gray-500">
-          <th class="py-2 px-4 text-left">한글명</th>
-          <th class="py-2 px-4 text-right">현재가(원)</th>
-          <th class="py-2 px-4 text-right">전일대비</th>
-          <th class="py-2 px-4 text-right">거래대금</th>
+        <tr class="border-b border-gray-100 text-xs text-gray-500">
+          <th class="py-2 px-2 text-left">한글명</th>
+          <th class="py-2 px-2 text-right">현재가(원)</th>
+          <th class="py-2 px-2 text-right">전일대비</th>
+          <th class="py-2 px-2 text-right">거래대금</th>
         </tr>
       </thead>
     <tbody class="text-gray-900">
       <tr v-for="(coin, key) in coins" :key="key">
-        <td class="py-1 px-4 text-left">
+        <td class="py-1 px-2 text-left">
           <div class="font-semibold text-gray-700">
             {{ coin.korean_name }}
           </div>
-          <div class="text-sm text-gray-500">{{ coin.market }}</div>
+          <div class="text-xs text-gray-500">{{ coin.market }}</div>
         </td>
-        <td :class="[getColor(coin.change), 'py-1 px-4 text-right font-semibold align-top']">
+        <td :class="[getColor(coin.change), 'py-1 px-2 text-right font-semibold align-top']">
           {{ getRatePrefix(coin) }}{{ getCurrency(coin.trade_price) }}
         </td>
-        <td :class="[getColor(coin.change), 'py-1 px-4 text-right']">
+        <td :class="[getColor(coin.change), 'py-1 px-2 text-right']">
           <div class="font-semibold">
             {{ getRatePrefix(coin) }}{{ getChangeRate(coin.change_rate) }}%
           </div>
-          <div class="text-sm text-gray-500">
+          <div class="text-xs text-gray-500">
             {{ getRatePrefix(coin) }}{{ getCurrency(coin.change_price) }}
           </div>
         </td>
-        <td class="py-1 px-4 text-right font-semibold text-gray-500">
+        <td class="py-1 px-2 text-right font-semibold text-gray-500">
           {{ getVolume(coin.acc_trade_price_24h) }}
         </td>
       </tr>
     </tbody>
   </table>
+</div>
 </template>
 
 <style scoped>
+#tableWrap{
+  height:300px; 
+  overflow: auto;
+}
 </style>
